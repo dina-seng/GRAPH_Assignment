@@ -15,7 +15,7 @@ const int N = 11; // Number of airports
 class AirlineGraph {
 private:
     // Adjacency list: vector of vectors of pairs (neighbor, weight)
-    std::vector<std::vector<std::pair<int, int>>> adj;
+    std::vector<std::vector<std::pair<int, int> > > adj;
     // List of airport codes
     std::vector<std::string> airportList;
 
@@ -27,6 +27,43 @@ private:
             }
         }
         return -1;
+    }
+
+    // DFS helper to find all paths between source and destination
+    void dfsAllPaths(int current, int dest, std::vector<bool>& visited,
+                     std::vector<int>& path, std::vector<std::vector<int> >& allPaths) const {
+        visited[current] = true;
+        path.push_back(current);
+
+        if (current == dest) {
+            allPaths.push_back(path);
+        } else {
+            for(const auto& [neighbor, weight] : adj[current]) {
+                if (!visited[neighbor]) {
+                    dfsAllPaths(neighbor, dest, visited, path, allPaths);
+                }
+            }
+        }
+
+        path.pop_back();
+        visited[current] = false;
+    }
+
+    // Calculate total distance for a path
+    int calculatePathDistance(const std::vector<int>& path) const {
+        int totalDist = 0;
+        for (size_t i = 0; i < path.size() - 1; ++i) {
+            int u = path[i];
+            int v = path[i + 1];
+            // Find the edge weight between u and v
+            for (const auto& [neighbor, weight] : adj[u]) {
+                if (neighbor == v) {
+                    totalDist += weight;
+                    break;
+                }
+            }
+        }
+        return totalDist;
     }
 
 public:
@@ -145,6 +182,115 @@ public:
                       << ": " << dist[t] << std::endl;
             std::cout << "Full route: ";
             printPath(prev, t, s);
+        }
+    }
+
+    // NEW FUNCTION 1: Find path with minimum stops between two airports
+    void findMinimumStops(const std::string& source, const std::string& dest) const {
+        int s = getIndex(source);
+        int t = getIndex(dest);
+
+        // Validate input
+        if (s == -1 || t == -1) {
+            std::cout << "Invalid airport code(s)." << std::endl;
+            return;
+        }
+
+        if (s == t) {
+            std::cout << "Source and destination are the same." << std::endl;
+            return;
+        }
+
+        // Find all paths using DFS
+        std::vector<bool> visited(N, false);
+        std::vector<int> currentPath;
+        std::vector<std::vector<int>> allPaths;
+
+        dfsAllPaths(s, t, visited, currentPath, allPaths);
+
+        if (allPaths.empty()) {
+            std::cout << "No path from " << source << " to " << dest << "." << std::endl;
+            return;
+        }
+
+        // Find the path with minimum stops
+        int minStops = INF;
+        int minPathIndex = 0;
+
+        for (size_t i = 0; i < allPaths.size(); ++i) {
+            int stops = allPaths[i].size() - 1;
+            if (stops < minStops) {
+                minStops = stops;
+                minPathIndex = i;
+            }
+        }
+
+        const std::vector<int>& shortestPath = allPaths[minPathIndex];
+        int totalDistance = calculatePathDistance(shortestPath);
+
+        // Output results
+        std::cout << "\nPath with Minimum Stops from " << source << " to " << dest << ":" << std::endl;
+        std::cout << "Minimum stops: " << minStops << std::endl;
+        std::cout << "Total distance: " << totalDistance << std::endl;
+        std::cout << "Route: ";
+
+        for (size_t i = 0; i < shortestPath.size(); ++i) {
+            std::cout << airportList[shortestPath[i]];
+            if (i < shortestPath.size() - 1) {
+                std::cout << " -> ";
+            }
+        }
+        std::cout << std::endl;
+    }
+
+    // NEW FUNCTION 2: Find all possible paths between two airports
+    void findAllPossiblePaths(const std::string& source, const std::string& dest) const {
+        int s = getIndex(source);
+        int t = getIndex(dest);
+
+        // Validate input
+        if (s == -1 || t == -1) {
+            std::cout << "Invalid airport code(s)." << std::endl;
+            return;
+        }
+
+        if (s == t) {
+            std::cout << "Source and destination are the same." << std::endl;
+            return;
+        }
+
+        // Find all paths using DFS
+        std::vector<bool> visited(N, false);
+        std::vector<int> currentPath;
+        std::vector<std::vector<int>> allPaths;
+
+        dfsAllPaths(s, t, visited, currentPath, allPaths);
+
+        if (allPaths.empty()) {
+            std::cout << "No path from " << source << " to " << dest << "." << std::endl;
+            return;
+        }
+
+        // Output all paths
+        std::cout << "\nAll Possible Paths from " << source << " to " << dest << ":" << std::endl;
+        std::cout << "Total paths found: " << allPaths.size() << "\n" << std::endl;
+
+        for (size_t idx = 0; idx < allPaths.size(); ++idx) {
+            const std::vector<int>& path = allPaths[idx];
+            int totalDistance = calculatePathDistance(path);
+            int stops = path.size() - 1;
+
+            std::cout << "Path " << (idx + 1) << ": ";
+
+            for (size_t i = 0; i < path.size(); ++i) {
+                std::cout << airportList[path[i]];
+                if (i < path.size() - 1) {
+                    std::cout << " -> ";
+                }
+            }
+
+            std::cout << " | Distance: " << totalDistance 
+                      << " | Stops: " << stops << std::endl;
         }
     }
 };
