@@ -49,11 +49,18 @@ int main() {
         std::cout << "1. Display all available airports" << std::endl;
         std::cout << "2. Display all direct routes" << std::endl;
         std::cout << "3. Find shortest path between two airports" << std::endl;
-        std::cout << "4. Exit" << std::endl;
-        std::cout << "Enter your choice (1-4): ";
+        std::cout << "4. Find path with minimum stops" << std::endl;
+        std::cout << "5. Find all possible paths between two airports" << std::endl;
+        std::cout << "6. Exit" << std::endl;
+        std::cout << "Enter your choice (1-6): ";
         std::cin >> choiceStr;
+        
         // Simple conversion to int (assume valid input for simplicity)
-        choice = std::stoi(choiceStr);
+        try {
+            choice = std::stoi(choiceStr);
+        } catch (...) {
+            choice = -1;
+        }
 
         switch (choice) {
             case 1:
@@ -71,13 +78,31 @@ int main() {
                 graph.findShortestPath(source, dest);
                 break;
             }
-            case 4:
+            case 4: {
+                std::string source, dest;
+                std::cout << "Enter source airport code (e.g., PNH): ";
+                std::cin >> source;
+                std::cout << "Enter destination airport code (e.g., CGK): ";
+                std::cin >> dest;
+                graph.findMinimumStops(source, dest);
+                break;
+            }
+            case 5: {
+                std::string source, dest;
+                std::cout << "Enter source airport code (e.g., PNH): ";
+                std::cin >> source;
+                std::cout << "Enter destination airport code (e.g., HKG): ";
+                std::cin >> dest;
+                graph.findAllPossiblePaths(source, dest);
+                break;
+            }
+            case 6:
                 std::cout << "Goodbye!" << std::endl;
                 break;
             default:
                 std::cout << "Invalid choice. Please try again." << std::endl;
         }
-    } while (choice != 4);
+    } while (choice != 6);
 
     return 0;
 }
